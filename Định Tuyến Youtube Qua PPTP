@@ -1,0 +1,46 @@
+Để định tuyến các luồng youtube hay các trang lớn khác thông qua VPN, cần phải tìm kiếm nhà cung cấp dịch vụ hỗ trợ PPTP hoặc phải build 1 VPS.
+
+Ở đây mình chỉ hướng dẫn cách cài đặt PPTP Server:
+
+Hướng dẫn cài đặt: https://github.com/saaiful/PPTP-VPN
+
+Sau khi cài đặt PPTP Server, tiếp theo sẽ cài đặt PPTP Client trên Mikrotik
+
+Bước 1: Cài đặt PPTP Client
+
+/interface pptp-client
+add comment="PPTP " connect-to=Địa chỉ IP Server disabled=no name=pptp-out1 \
+    password=xxxxxxx user=xxxxxxx
+    
+Bước 2: Đặt địa chỉ cho phép các thiết bị sử dụng VPN trong Address-list
+
+/ip firewall address-list
+add address=192.168.100.0/24 list=Allow
+/ip firewall filter
+add action=accept chain=input port=1723 protocol=tcp
+/ip firewall mangle
+add action=mark-routing chain=prerouting dst-address-list=Youtube \
+    new-routing-mark=Routing_Youtube passthrough=yes src-address-list=Allow
+/ip firewall raw
+add action=add-dst-to-address-list address-list=Youtube address-list-timeout=\
+    1h chain=prerouting content=.youtube.com dst-address-list=!Allow \
+    src-address-list=Allow
+add action=add-dst-to-address-list address-list=Youtube address-list-timeout=\
+    1h chain=prerouting content=youtubei.googleapis.com dst-address-list=\
+    !Allow src-address-list=Allow
+add action=add-dst-to-address-list address-list=Youtube address-list-timeout=\
+    1h chain=prerouting content=yt3.ggpht.com dst-address-list=!Allow \
+    src-address-list=Allow
+add action=add-dst-to-address-list address-list=Youtube address-list-timeout=\
+    1h chain=prerouting content=youtu.be dst-address-list=!Allow \
+    src-address-list=Allow
+add action=add-dst-to-address-list address-list=Youtube address-list-timeout=\
+    1h chain=prerouting content=.ytimg.com dst-address-list=!Allow \
+    src-address-list=Allow
+add action=add-dst-to-address-list address-list=Youtube address-list-timeout=\
+    1h chain=prerouting content=.googlevideo.com dst-address-list=!Allow \
+    src-address-list=Allow
+Bước 3: Add Interface List
+/interface list member
+add interface=pptp-out1 list=WAN
+
