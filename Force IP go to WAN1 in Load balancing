@@ -1,0 +1,16 @@
+    Create Address list:
+
+    ip firewall>address-list> add comment="samme comment" address=192.168.0.50-192.168.0.51 list=list50-51
+
+    create mangle:
+
+    ip firewall mangle> add comment="same comment" chain=prerouting action=mark-routing new-routing-mark=INTERNET-50-51 src-address-list=list50-51
+
+    create route:
+
+    ip route> add comment="same comment" dst-address=0.0.0.0/0 routing-mark=INTERNET-50-51 gateway=IP of ISP1
+
+    create nat:
+
+    ip firewall>nat> add comment="same comment" chain=srcnat action=masquerade src-address-list=list50-51 dst-address=0.0.0.0/0 out-interface=Interface of ISP1(PPPOE)
+
